@@ -8,7 +8,6 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     InAdvancePagedList,
     int_or_none,
     RegexNotFoundError,
+    sanitized_Request,
     smuggle_url,
     std_headers,
     unified_strdate,
@@ -47,7 +47,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             'service': 'vimeo',
             'token': token,
         }))
-        login_request = compat_urllib_request.Request(self._LOGIN_URL, data)
+        login_request = sanitized_Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Referer', self._LOGIN_URL)
         self._set_vimeo_cookie('vuid', vuid)
@@ -189,6 +189,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'note': 'Video not completely processed, "failed" seed status',
             'only_matching': True,
         },
+        {
+            'url': 'https://vimeo.com/groups/travelhd/videos/22439234',
+            'only_matching': True,
+        },
     ]
 
     @staticmethod
@@ -218,7 +222,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
-        password_request = compat_urllib_request.Request(url + '/password', data)
+        password_request = sanitized_Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Referer', url)
         self._set_vimeo_cookie('vuid', vuid)
@@ -232,7 +236,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             raise ExtractorError('This video is protected by a password, use the --video-password option')
         data = urlencode_postdata(encode_dict({'password': password}))
         pass_url = url + '/check-password'
-        password_request = compat_urllib_request.Request(pass_url, data)
+        password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         return self._download_json(
             password_request, video_id,
@@ -261,7 +265,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url, None, headers)
+        request = sanitized_Request(url, None, headers)
         try:
             webpage = self._download_webpage(request, video_id)
         except ExtractorError as ee:
@@ -477,7 +481,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)
-        password_request = compat_urllib_request.Request(password_url, post)
+        password_request = sanitized_Request(password_url, post)
         password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
         self._set_vimeo_cookie('vuid', vuid)
         self._set_vimeo_cookie('xsrft', token)
@@ -486,8 +490,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
             password_request, list_id,
             'Verifying the password', 'Wrong password')
 
-    def _extract_videos(self, list_id, base_url):
-        video_ids = []
+    def _title_and_entries(self, list_id, base_url):
         for pagenum in itertools.count(1):
             page_url = self._page_url(base_url, pagenum)
             webpage = self._download_webpage(
@@ -496,18 +499,18 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
 
             if pagenum == 1:
                 webpage = self._login_list_password(page_url, list_id, webpage)
+                yield self._extract_list_title(webpage)
 
-            video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
+            for video_id in re.findall(r'id="clip_(\d+?)"', webpage):
+                yield self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
+
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
-        entries = [self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
-                   for video_id in video_ids]
-        return {'_type': 'playlist',
-                'id': list_id,
-                'title': self._extract_list_title(webpage),
-                'entries': entries,
-                }
+    def _extract_videos(self, list_id, base_url):
+        title_and_entries = self._title_and_entries(list_id, base_url)
+        list_title = next(title_and_entries)
+        return self.playlist_result(title_and_entries, list_id, list_title)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -568,7 +571,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
-    _VALID_URL = r'https://vimeo\.com/groups/(?P<name>[^/]+)'
+    _VALID_URL = r'https://vimeo\.com/groups/(?P<name>[^/]+)(?:/(?!videos?/\d+)|$)'
     _TESTS = [{
         'url': 'https://vimeo.com/groups/rolexawards',
         'info_dict': {
@@ -637,7 +640,7 @@ class VimeoWatchLaterIE(VimeoChannelIE):
 
     def _page_url(self, base_url, pagenum):
         url = '%s/page:%d/' % (base_url, pagenum)
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         # Set the header to get a partial html page with the ids,
         # the normal page doesn't contain them.
         request.add_header('X-Requested-With', 'XMLHttpRequest')

@@ -576,7 +576,8 @@ from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
-    SoundcloudPlaylistIE
+    SoundcloudPlaylistIE,
+    SoundcloudSearchIE
 )
 from .soundgasm import (
     SoundgasmIE,
@@ -833,6 +834,7 @@ from .youtube import (
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
+    YoutubeUserPlaylistsIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE

@@ -11,7 +11,6 @@ from .youtube import YoutubeIE
 from ..compat import (
     compat_etree_fromstring,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 )
@@ -22,6 +21,7 @@ from ..utils import (
     HEADRequest,
     is_html,
     orderedSet,
+    sanitized_Request,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -823,6 +823,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
             },
         },
+        # Kaltura embed protected with referrer
+        {
+            'url': 'http://www.disney.nl/disney-channel/filmpjes/achter-de-schermen#/videoId/violetta-achter-de-schermen-ruggero',
+            'info_dict': {
+                'id': '1_g4fbemnq',
+                'ext': 'mp4',
+                'title': 'Violetta - Achter De Schermen - Ruggero',
+                'description': 'Achter de schermen met Ruggero',
+                'timestamp': 1435133761,
+                'upload_date': '20150624',
+                'uploader_id': 'echojecka',
+            },
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
@@ -1045,6 +1058,20 @@ class GenericIE(InfoExtractor):
                 'description': 'Tabletop: Dread, Last Thoughts',
                 'duration': 51690,
             },
+        },
+        # JWPlayer with M3U8
+        {
+            'url': 'http://ren.tv/novosti/2015-09-25/sluchaynyy-prohozhiy-poymal-avtougonshchika-v-murmanske-video',
+            'info_dict': {
+                'id': 'playlist',
+                'ext': 'mp4',
+                'title': 'Случайный прохожий поймал автоугонщика в Мурманске. ВИДЕО | РЕН ТВ',
+                'uploader': 'ren.tv',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
         }
     ]
 
@@ -1188,7 +1215,7 @@ class GenericIE(InfoExtractor):
 
         full_response = None
         if head_response is False:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
             head_response = full_response
@@ -1217,7 +1244,7 @@ class GenericIE(InfoExtractor):
                 '%s on generic information extractor.' % ('Forcing' if force else 'Falling back'))
 
         if not full_response:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             # Some webservers may serve compressed content of rather big size (e.g. gzipped flac)
             # making it impossible to download only chunk of the file (yet we need only 512kB to
             # test whether it's HTML or not). According to youtube-dl default Accept-Encoding
@@ -1694,7 +1721,9 @@ class GenericIE(InfoExtractor):
         mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_?[Ii]d'\s*:\s*'(?P<id>[^']+)',", webpage) or
                 re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
         if mobj is not None:
-            return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+            return self.url_result(smuggle_url(
+                'kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(),
+                {'source_url': url}), 'Kaltura')
 
         # Look for Eagle.Platform embeds
         mobj = re.search(
@@ -1859,6 +1888,7 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for video_url in found:
+            video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)
             video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
 
@@ -1870,25 +1900,24 @@ class GenericIE(InfoExtractor):
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
+            entry_info_dict = {
+                'id': video_id,
+                'uploader': video_uploader,
+                'title': video_title,
+                'age_limit': age_limit,
+            }
+
             ext = determine_ext(video_url)
             if ext == 'smil':
-                entries.append({
-                    'id': video_id,
-                    'formats': self._extract_smil_formats(video_url, video_id),
-                    'uploader': video_uploader,
-                    'title': video_title,
-                    'age_limit': age_limit,
-                })
+                entry_info_dict['formats'] = self._extract_smil_formats(video_url, video_id)
             elif ext == 'xspf':
                 return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+            elif ext == 'm3u8':
+                entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
             else:
-                entries.append({
-                    'id': video_id,
-                    'url': video_url,
-                    'uploader': video_uploader,
-                    'title': video_title,
-                    'age_limit': age_limit,
-                })
+                entry_info_dict['url'] = video_url
+
+            entries.append(entry_info_dict)
 
         if len(entries) == 1:
             return entries[0]

@@ -99,6 +99,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         {
             'url': 'http://www.dailymotion.com/video/xhza0o',
             'only_matching': True,
+        },
+        # with subtitles
+        {
+            'url': 'http://www.dailymotion.com/video/x20su5f_the-power-of-nightmares-1-the-rise-of-the-politics-of-fear-bbc-2004_news',
+            'only_matching': True,
         }
     ]
 
@@ -122,7 +127,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             webpage, 'comment count', fatal=False))
 
         player_v5 = self._search_regex(
-            [r'buildPlayer\(({.+?})\);', r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);'],
+            [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
+             r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
+             r'buildPlayer\(({.+?})\);'],
             webpage, 'player v5', default=None)
         if player_v5:
             player = self._parse_json(player_v5, video_id)
@@ -172,11 +179,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             uploader_id = metadata.get('owner', {}).get('id')
 
             subtitles = {}
-            for subtitle_lang, subtitle in metadata.get('subtitles', {}).get('data', {}).items():
-                subtitles[subtitle_lang] = [{
-                    'ext': determine_ext(subtitle_url),
-                    'url': subtitle_url,
-                } for subtitle_url in subtitle.get('urls', [])]
+            subtitles_data = metadata.get('subtitles', {}).get('data', {})
+            if subtitles_data and isinstance(subtitles_data, dict):
+                for subtitle_lang, subtitle in subtitles_data.items():
+                    subtitles[subtitle_lang] = [{
+                        'ext': determine_ext(subtitle_url),
+                        'url': subtitle_url,
+                    } for subtitle_url in subtitle.get('urls', [])]
 
             return {
                 'id': video_id,

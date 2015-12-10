@@ -38,9 +38,9 @@ try:
     https_proxy = "http://" + user + ":" + password + "@" + address + ":" + port
     ftp_proxy   = "http://" + user + ":" + password + "@" + address + ":" + port
 
-    proxyDict = { 
-                  "http"  : http_proxy, 
-                  "https" : https_proxy, 
+    proxyDict = {
+                  "http"  : http_proxy,
+                  "https" : https_proxy,
                   "ftp"   : ftp_proxy
                 }
 except:
@@ -57,7 +57,7 @@ class Ui_Form(QtGui.QWidget):
         super(Ui_Form, self).__init__()
         self.initValues = initValues
         self.setupUi(self)
-        
+
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(385, 166)
@@ -86,14 +86,14 @@ class Ui_Form(QtGui.QWidget):
 
         self.retranslateUi(Form)
         thread.start_new_thread(self.download,(0,'wb'))
-        
+
         QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Pause)
         QtCore.QObject.connect(self.pushButton_2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Cancel)
-        
+
         self.filesize.connect(self.UpdateFilesize)
         self.pbar.connect(self.UpdatePbar)
         self.speed.connect(self.UpdateSpeed)
-        
+
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -104,9 +104,10 @@ class Ui_Form(QtGui.QWidget):
         self.label_4.setText(_translate("Form", "File Size: " , None))
         self.pushButton.setText(_translate("Form", "Pause", None))
         self.pushButton_2.setText(_translate("Form", "Cancel", None))
+
     def Cancel(self):
         None
-    
+
     def UpdateFilesize(self, size,s):
         print size
         self.label_4.setText(_translate("Form", "FileSize: " + str(size) + s, None))
@@ -147,25 +148,25 @@ class Ui_Form(QtGui.QWidget):
         if self.initValues['extractor'] == '4':
             s=Search_ebook(self.initValues["URL"])
             self.initValues["URL"] = s.books_urls[0]
-        
+
         if flag == 1 and resume == 0:
             r = requests.get(self.initValues["URL"], stream=True, proxies=proxyDict)
-        
+
         elif flag == 1 and resume == 1 :
             resume_length = os.path.getsize(self.initValues["filename"])
             resume_length = int(resume_length)
             resume_header = {'Range': 'bytes=%d-' % resume_length}
             r = requests.get(self.initValues["URL"], stream=True, proxies=proxyDict, headers=resume_header)
-        
+
         elif flag == 0 and resume == 0:
             r = requests.get(self.initValues["URL"], stream=True)
-        
+
         else:
             resume_length = os.path.getsize(self.initValues["filename"])
             resume_length = int(resume_length)
             resume_header = {'Range': 'bytes=%d-' % resume_length}
             r = requests.get(self.initValues["URL"], stream=True, headers=resume_header)
-        
+
         with open(self.initValues["filename"], mode) as f:
             length=long(r.headers['content-length'])
             if length > 1073741824 :

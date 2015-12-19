@@ -34,7 +34,7 @@ Summary of our git branching model:
 - Clone your forked repository locally
   (`git clone git@github.com:your-username:repository-name.git`);
 - Create a new branch off of `develop` with a descriptive name (for example:
-  `feature/portuguese-sentiment-analysis`, `hotfix/bug-on-downloader`). You can
+  `feature/youtube downloading`, `hotfix/bug-on-downloader`). You can
   do it switching to `develop` branch (`git checkout develop`) and then
   creating a new branch (`git checkout -b name-of-the-new-branch`);
 - Do many small commits on that branch locally (`git add files-changed`,
@@ -75,7 +75,7 @@ Summary of our git branching model:
   (`'{} = {}'.format(a, b)` instead of `'%s = %s' % (a, b)`);
 - All `#TODO` comments should be turned into issues (use our
   [GitHub issue system](https://github.com/namd/pypln.web/issues));
-- Run all tests before pushing (just execute `tox`) so you will know if your
+- Run all tests before pushing (just execute `nosetests`) so you will know if your
   changes broke something;
 - Try to write both Python 2 and Python3-friendly code so won't be a pain for
   us to support both versions.

@@ -58,18 +58,23 @@ class CSpanIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        video_type = None
         webpage = self._download_webpage(url, video_id)
-        matches = re.search(r'data-(prog|clip)id=\'([0-9]+)\'', webpage)
-        if matches:
+        # We first look for clipid, because clipprog always appears before
+        patterns = [r'id=\'clip(%s)\'\s*value=\'([0-9]+)\'' % t for t in ('id', 'prog')]
+        results = list(filter(None, (re.search(p, webpage) for p in patterns)))
+        if results:
+            matches = results[0]
             video_type, video_id = matches.groups()
-            if video_type == 'prog':
-                video_type = 'program'
+            video_type = 'clip' if video_type == 'id' else 'program'
         else:
             senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
             if senate_isvp_url:
                 title = self._og_search_title(webpage)
                 surl = smuggle_url(senate_isvp_url, {'force_title': title})
                 return self.url_result(surl, 'SenateISVP', video_id, title)
+        if video_type is None or video_id is None:
+            raise ExtractorError('unable to find video id and type')
 
         def get_text_attr(d, attr):
             return d.get(attr, {}).get('#text')

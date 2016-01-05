@@ -16,7 +16,7 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
-    _VALID_URL = r'http://(?:www\.)iqiyi.com/v_.+?\.html'
+    _VALID_URL = r'http://(?:[^.]+\.)?iqiyi\.com/.+\.html'
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
@@ -84,6 +84,15 @@ class IqiyiIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.iqiyi.com/w_19rt6o8t9p.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.iqiyi.com/a_19rrhbc6kt.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://yule.iqiyi.com/pcb.html',
+        'only_matching': True,
     }]
 
     _FORMATS_MAP = [

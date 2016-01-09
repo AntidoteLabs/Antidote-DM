@@ -108,8 +108,9 @@ class InfoExtractor(object):
                                  -2 or smaller for less than default.
                                  < -1000 to hide the format (if there is
                                     another one which is strictly better)
-                    * language_preference  Is this in the correct requested
-                                 language?
+                    * language   Language code, e.g. "de" or "en-US".
+                    * language_preference  Is this in the language mentioned in
+                                 the URL?
                                  10 if it's what the URL is about,
                                  -1 for default (don't know),
                                  -10 otherwise, other values reserved for now.
@@ -199,6 +200,26 @@ class InfoExtractor(object):
                     specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
+
+    The following fields should only be used when the video belongs to some logical
+    chapter or section:
+
+    chapter:        Name or title of the chapter the video belongs to.
+    chapter_number: Number of the chapter the video belongs to, as an integer.
+    chapter_id:     Id of the chapter the video belongs to, as a unicode string.
+
+    The following fields should only be used when the video is an episode of some
+    series or programme:
+
+    series:         Title of the series or programme the video episode belongs to.
+    season:         Title of the season the video episode belongs to.
+    season_number:  Number of the season the video episode belongs to, as an integer.
+    season_id:      Id of the season the video episode belongs to, as a unicode string.
+    episode:        Title of the video episode. Unlike mandatory video title field,
+                    this field should denote the exact title of the video episode
+                    without any kind of decoration.
+    episode_number: Number of the video episode within a season, as an integer.
+    episode_id:     Id of the video episode, as a unicode string.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 

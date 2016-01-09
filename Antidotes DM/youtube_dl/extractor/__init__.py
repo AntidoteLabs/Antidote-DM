@@ -299,6 +299,7 @@ from .ivi import (
     IviIE,
     IviCompilationIE
 )
+from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
 from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
@@ -473,6 +474,7 @@ from .npo import (
     VPROIE,
     WNLIE
 )
+from .npr import NprIE
 from .nrk import (
     NRKIE,
     NRKPlaylistIE,
@@ -557,12 +559,13 @@ from .redtube import RedTubeIE
 from .regiotv import RegioTVIE
 from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
+from .revision3 import Revision3IE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
-from .rte import RteIE
+from .rte import RteIE, RteRadioIE
 from .rtlnl import RtlNlIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
@@ -686,7 +689,6 @@ from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
 from .tenplay import TenPlayIE
 from .testurl import TestURLIE
-from .testtube import TestTubeIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
 from .theonion import TheOnionIE
@@ -746,6 +748,7 @@ from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
+from .twentymin import TwentyMinutenIE
 from .twentytwotracks import (
     TwentyTwoTracksIE,
     TwentyTwoTracksGenreIE

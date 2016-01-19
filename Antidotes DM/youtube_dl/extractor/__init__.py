@@ -15,6 +15,7 @@ from .adobetv import (
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE
+from .ae import AEIE
 from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
@@ -61,6 +62,7 @@ from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
 from .bet import BetIE
+from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .bleacherreport import (
@@ -85,6 +87,7 @@ from .camdemy import (
 )
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
+from .canvas import CanvasIE
 from .cbs import CBSIE
 from .cbsnews import CBSNewsIE
 from .cbssports import CBSSportsIE
@@ -127,6 +130,7 @@ from .crunchyroll import (
 )
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
+from .cwtv import CWTVIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
@@ -261,7 +265,6 @@ from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .historicfilms import HistoricFilmsIE
-from .history import HistoryIE
 from .hitbox import HitboxIE, HitboxLiveIE
 from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
@@ -722,7 +725,11 @@ from .trilulilu import TriluliluIE
 from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
-from .tudou import TudouIE
+from .tudou import (
+    TudouIE,
+    TudouPlaylistIE,
+    TudouAlbumIE,
+)
 from .tumblr import TumblrIE
 from .tunein import (
     TuneInClipIE,
